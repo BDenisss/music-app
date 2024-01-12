@@ -18,13 +18,14 @@ class TrackFactory extends Factory
     public function definition(): array
     {
         return [
-            'uuid' => 'trk-' . Str::uuid(),
+            'uuid' => 'trk-' .Str::uuid(),
             'title' => $this->faker->sentence(3),
             'artist' => $this->faker->name(),
-            'image' => '',
-            'music' => '',
+            'image' => 'tracks/images/painauchocolat.jpg',
+            'music' => 'tracks/music/test.wav',
             'display' => true,
             'play_count' => 0,
+            //
         ];
     }
 }

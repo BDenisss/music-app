@@ -1,44 +1,165 @@
 <template>
     <MusicLayout>
-        <template #title>
-            Musiques
-        </template>
-
+        <template #title> Musiques </template>
 
         <template #action>
-            <Link :href="route('tracks.create')"
-            class="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
-
-            >
+            <div>
+                <input
+                    v-model="search"
+                    type="text"
+                    name="search"
+                    placeholder="search"
+                />
+            </div>
+            <Link v-if="$page.props.isAdmin" :href="route('tracks.create')">
                 Créer une musique
             </Link>
         </template>
 
-
         <template #content>
-            <h1>Track</h1>
-            <div v-for="music in tracks" :key="music.uuid" :class="[music.id % 2 ? 'text-red-500' : 'text-green-500']">
-                {{ music.id }} : {{ music.title }}
+            <div class="card__section">
+                <div class="card__container">
+                    <Track
+                        v-for="track in filteredTracks"
+                        :key="track.uuid"
+                        :track="track"
+                        @played="play"
+                    />
+                </div>
             </div>
         </template>
     </MusicLayout>
 </template>
 
 <script>
-import MusicLayout from '@/Layouts/MusicLayout.vue';
-import { Link } from '@inertiajs/vue3';
+import MusicLayout from "@/Layouts/MusicLayout.vue";
+import { Link } from "@inertiajs/vue3";
+import Track from "@/Components/Track/Track.vue";
 
 export default {
-    components:{
+    components: {
         MusicLayout,
         Link,
+        Track,
     },
     props: {
-        tracks: Array
+        tracks: {
+            type: Array,
+        },
+    },
+    data() {
+        return {
+            search: "",
+            audio: null,
+            currentTrack: null,
+        };
+    },
+    computed: {
+        filteredTracks() {
+            return this.tracks.filter(
+                (track) =>
+                    track.title
+                        .toLowerCase()
+                        .includes(this.search.toLowerCase()) ||
+                    track.artist
+                        .toLowerCase()
+                        .includes(this.search.toLowerCase())
+            );
+        },
+    },
+    methods: {
+        play(track) {
+            const url = "/storage/" + track.music;
+
+            if (!this.currentTrack) {
+                this.audio = new Audio(url);
+                this.audio.play();
+            } else if (this.currentTrack !== track.uuid) {
+                this.audio.pause();
+                this.audio.src = url;
+                this.audio.play();
+            } else if (!this.audio.paused) {
+                this.audio.pause();
+            } else {
+                this.audio.play();
+            }
+
+            this.currentTrack = track.uuid;
+        },
+    },
+};
+</script>
+<style>
+.card__section {
+    margin-top: 100px;
+}
+
+.card__container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+}
+
+.card {
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    justify-content: left;
+
+    width: 250px;
+    height: 250px;
+    border-radius: 15px;
+    border: solid 1px rgb(47, 62, 84);
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 15px 0px;
+
+    transition: ease-in-out 0.2s;
+
+    &:hover {
+        box-shadow: rgba(54, 54, 60, 0.337) 0px 7px 20px 0px;
+        transition: ease-in-out 0.2s;
     }
 }
-</script>
 
-<style>
+.image__container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+}
 
+.image__container img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.flex_illustration {
+    display: flex;
+    justify-content: center;
+    align-items: first baseline;
+    gap: 10px;
+}
+
+.svg__illustration {
+    width: 5px;
+    height: 5px;
+    border-radius: 10px;
+    background-color: rgb(47, 62, 84);
+}
+
+.card__description {
+    margin-top: 20px;
+}
+
+.flex_illustration h3 {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.card__description p {
+    font-size: 14px;
+    font-weight: 400;
+}
 </style>
